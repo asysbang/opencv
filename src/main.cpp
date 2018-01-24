@@ -3,9 +3,11 @@
 
 #include "model/canny_asys.h"
 #include "model/mhxy.h"
+#include "model/ToolForTest.h"
 
 int main() {
-	getHuoDongRiLi();
+	getDianXiaoEr();
+//	erodeTest();
 	return 0;
 }
 

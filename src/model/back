@@ -1,0 +1,84 @@
+//============================================================================
+// Name        : asys_opencv.cpp
+// Author      :
+// Version     :
+// Copyright   : Your copyright notice
+// Description : Hello World in C++, Ansi-style
+//============================================================================
+
+//
+//	cout << " width " << matHsv.size().width << endl;
+//	for (int i = 0; i < matHsv.size().width; i++) {
+//		for (int j = 0; j < matHsv.size().height; j++) {
+//			if (i == 300 && j == 300) {
+//				int h = matHsv.at<Vec3b>(i, j)[0];
+//				int s = matHsv.at<Vec3b>(i, j)[1];
+//				int v = matHsv.at<Vec3b>(i, j)[2];
+//				cout << "  [ " << h << "," << s << "," << v << "]" << endl;
+//			}
+//		}
+//	}
+
+
+
+#include <iostream>
+#include "opencv2/opencv.hpp"
+using namespace std;
+IplImage *g_pSrcImage, *g_pCannyImg;
+const char *pstrWindowsCannyTitle = "abc.png";
+//cvCreateTrackbar的回调函数
+void on_trackbar(int threshold) {
+	//canny边缘检测
+	cvCanny(g_pSrcImage, g_pCannyImg, threshold, threshold * 3, 3);
+	cvShowImage(pstrWindowsCannyTitle, g_pCannyImg);
+}
+int canny() {
+	const char *pstrImageName = "abc.png";
+	const char *pstrWindowsSrcTitle = "原图(http://blog.csdn.net/MoreWindows)";
+	const char *pstrWindowsToolBar = "Threshold";
+	cv::imread(pstrImageName,1);
+	//从文件中载入图像的灰度图CV_LOAD_IMAGE_GRAYSCALE - 灰度图
+	g_pSrcImage = cvLoadImage(pstrImageName, CV_LOAD_IMAGE_GRAYSCALE);
+	g_pCannyImg = cvCreateImage(cvGetSize(g_pSrcImage), IPL_DEPTH_8U, 1);
+
+	//创建窗口
+	cvNamedWindow(pstrWindowsSrcTitle, CV_WINDOW_AUTOSIZE);
+	cvNamedWindow(pstrWindowsCannyTitle, CV_WINDOW_AUTOSIZE);
+
+//创建滑动条
+	int nThresholdEdge = 1;
+	cvCreateTrackbar(pstrWindowsToolBar, pstrWindowsCannyTitle, &nThresholdEdge, 100, on_trackbar);
+
+	//在指定窗口中显示图像
+	cvShowImage(pstrWindowsSrcTitle, g_pSrcImage);
+	on_trackbar(1);
+
+	//等待按键事件
+	cvWaitKey();
+
+	cvDestroyWindow(pstrWindowsSrcTitle);
+	cvDestroyWindow(pstrWindowsCannyTitle);
+	cvReleaseImage(&g_pSrcImage);
+	cvReleaseImage(&g_pCannyImg);
+	return 0;
+}
+
+
+Mat matGray = Mat(240, 320, CV_8U, cv::Scalar(100));
+namedWindow("Test");     //创建一个名为Test窗口
+for (int i = 0; i < matGray.rows; i++)        //遍历每一行每一列并设置其像素值
+		{
+	for (int j = 0; j < matGray.cols; j++) {
+		matGray.at<uchar>(i, j) = 255;
+	}
+}
+cv::Point p1;
+p1.x = 10;
+p1.y = 10;
+cv::Point p2;
+p2.x = 100;
+p2.y = 200;
+line(matGray, p1, p2, Scalar(0), 2, CV_AA);        //2为线的宽度，CV_AA为反走样形式
+imshow("Test", matGray);   //窗口中显示图像
+imwrite("a111.jpg", matGray);    //保存生成的图片
+waitKey(); //等待5000ms后窗口自动关闭

@@ -1,0 +1,178 @@
+1.打补丁(如果出现冲突，请根据补丁文件手动修改)：
+git am 0001-Kernel-driver-add-7.85-module-support.patch
+
+2.编译内核：
+cd kernel
+make firefly-rk3288_defconfig
+make firefly-rk3288.img -j8
+
+3.编译上层：
+cd ..
+. build.sh
+make installclean
+make -j8
+./mkimage.sh
+
+
+3.烧写：
+编译完成后会在rockdev/Image-rk3288_box/下面生成镜像文件，把生成的镜像文件烧入开发板即可．
+具体烧写方法请参考：http://wiki.t-firefly.com/index.php/Firefly-RK3288/Flash_image
+
+
+
+
+
+
+From ae6cc409a868d510f6b2197e1bb7ebb04447390d Mon Sep 17 00:00:00 2001
+From: linjz <service@t-firefly.com>
+Date: Fri, 6 May 2016 17:21:42 +0800
+Subject: [PATCH] Kernel->driver:add 7.85 module support
+
+---
+ device/rockchip/rk3288/rk3288_box/system.prop      |    2 +-
+ .../android/providers/settings/DatabaseHelper.java |    2 +-
+ kernel/arch/arm/boot/dts/firefly-rk3288.dts        |   37 ++++++++++++++++----
+ kernel/arch/arm/boot/dts/rk3288.dtsi               |    2 +-
+ kernel/arch/arm/configs/firefly-rk3288_defconfig   |    2 +-
+ 5 files changed, 34 insertions(+), 11 deletions(-)
+
+diff --git a/device/rockchip/rk3288/rk3288_box/system.prop b/device/rockchip/rk3288/rk3288_box/system.prop
+index 6f1135e..81d3b29 100644
+--- a/device/rockchip/rk3288/rk3288_box/system.prop
++++ b/device/rockchip/rk3288/rk3288_box/system.prop
+@@ -44,6 +44,6 @@ wifi.supplicant_scan_interval=15
+ ro.factory.tool=0
+ ro.kernel.android.checkjni=0
+ #set default lcd density to Rockchip tablet
+-ro.sf.lcd_density=160
++ro.sf.lcd_density=320
+ ro.adb.secure=0
+ persist.demo.hdmirotates=true
+diff --git a/frameworks/base/packages/SettingsProvider/src/com/android/providers/settings/DatabaseHelper.java b/frameworks/base/packages/SettingsProvider/src/com/android/providers/settings/DatabaseHelper.java
+index c5ccf3e..56181f5 100644
+--- a/frameworks/base/packages/SettingsProvider/src/com/android/providers/settings/DatabaseHelper.java
++++ b/frameworks/base/packages/SettingsProvider/src/com/android/providers/settings/DatabaseHelper.java
+@@ -2310,7 +2310,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
+                      SystemProperties.getInt("ro.rk.screenoff_time", mContext.getResources().getInteger(R.integer.def_screen_off_timeout)));
+ 
+             loadSetting(stmt, Settings.System.HIDE_ROTATION_LOCK_TOGGLE_FOR_ACCESSIBILITY,
+-                     "1");
++                     "0");
+             // Set default button lights settings
+             loadBooleanSetting(stmt,Settings.System.BUTTON_LIGHTS_ENABLED,
+                     R.bool.def_button_lights_enabled);
+diff --git a/kernel/arch/arm/boot/dts/firefly-rk3288.dts b/kernel/arch/arm/boot/dts/firefly-rk3288.dts
+index 86d1b22..b3d9038 100755
+--- a/kernel/arch/arm/boot/dts/firefly-rk3288.dts
++++ b/kernel/arch/arm/boot/dts/firefly-rk3288.dts
+@@ -1,7 +1,7 @@
+ /dts-v1/;
+ 
+ #include "rk3288.dtsi"
+-#include "lcd-box.dtsi"
++#include "lcd-LP079Qx1.dtsi"
+ #include <dt-bindings/input/input.h>
+ 
+ / {
+@@ -498,7 +498,7 @@
+                 flip-y = <0>;
+         };
+      	mt@40 {
+-		status = "disabled";
++		status = "okay";
+                	compatible = "firefly,gsl3680";
+               	reg = <0x40>;
+                	touch-gpio = <&gpio5 GPIO_B0 IRQ_TYPE_EDGE_RISING>;
+@@ -523,7 +523,7 @@
+ 		swap-xy = <1>;
+     	};
+         mpu6050:mpu@68{
+-            status = "disabled";
++            status = "okay";
+             compatible = "mpu6050";
+             reg = <0x68>;
+             mpu-int_config = <0x10>;
+@@ -589,7 +589,7 @@
+ 		gpio-pwn = <&gpio0 GPIO_C1 GPIO_ACTIVE_HIGH>;
+ 		rockchip,source = <0>; //0: LCDC0; 1: LCDC1
+ 		rockchip,prop = <PRMRY>;//<EXTEND>
+-		status = "okay";
++		status = "disabled";
+ 	};
+ };
+ 
+ 
+ &disp_timings {
+-	native-mode = <&timing1>;
++	native-mode = <&timing0>;
+ };
+ 
+ &rk_screen {
+@@ -624,6 +624,29 @@
+ 	status = "okay";
+ 	rockchip,iommu-enabled = <1>;
+ 	rockchip,prop = <PRMRY>;
++       	power_ctr: power_ctr {
++        rockchip,debug = <1>;
++
++        lcd_en:lcd_en {
++                rockchip,power_type = <GPIO>;
++                gpios = <&gpio0 GPIO_B5 GPIO_ACTIVE_HIGH>;
++                rockchip,delay = <10>;
++        };
++
++       	/*
++        lcd_cs:lcd_cs {
++                rockchip,power_type = <GPIO>;
++                gpios = <&gpio7 GPIO_A4 GPIO_ACTIVE_HIGH>;
++                rockchip,delay = <10>;
++        };
++        lcd_rst:lcd_rst {
++                rockchip,power_type = <GPIO>;
++                gpios = <&gpio5 GPIO_C1 GPIO_ACTIVE_LOW>;
++                rockchip,delay = <0>;
++        };
++      	*/
++};
++
+ };
+ 
+ &lcdc1 {
+@@ -703,7 +726,7 @@
+ */
+ 
+ &pwm1 {
+-	status = "disabled";
++	status = "okay";
+ };
+ 
+ 
+diff --git a/kernel/arch/arm/boot/dts/rk3288.dtsi b/kernel/arch/arm/boot/dts/rk3288.dtsi
+index bff1961..b8501f0 100755
+--- a/kernel/arch/arm/boot/dts/rk3288.dtsi
++++ b/kernel/arch/arm/boot/dts/rk3288.dtsi
+@@ -1276,7 +1276,7 @@
+ 		rockchip,ctrbits = <
+ 			(0
+ 			 |RKPM_CTR_PWR_DMNS
+-			 |RKPM_CTR_GTCLKS
++		//	 |RKPM_CTR_GTCLKS
+ 			 |RKPM_CTR_PLLS
+                  //      |RKPM_CTR_GPIOS
+ 		//	 |RKPM_CTR_SYSCLK_DIV
+diff --git a/kernel/arch/arm/configs/firefly-rk3288_defconfig b/kernel/arch/arm/configs/firefly-rk3288_defconfig
+index 60e1065..a9d6c81 100644
+--- a/kernel/arch/arm/configs/firefly-rk3288_defconfig
++++ b/kernel/arch/arm/configs/firefly-rk3288_defconfig
+@@ -1536,7 +1536,7 @@ CONFIG_INPUT_TOUCHSCREEN=y
+ CONFIG_TOUCHSCREEN_SYNAPTICS_DSX_CORE=y
+ # CONFIG_TOUCHSCREEN_SYNAPTICS_RK is not set
+ # CONFIG_TOUCHSCREEN_ZET62XX is not set
+-CONFIG_TOUCHSCREEN_GSLX680=y
++CONFIG_TOUCHSCREEN_GSLX680_MT70817V2=y
+ # CONFIG_TOUCHSCREEN_GT8XX is not set
+ # CONFIG_TOUCHSCREEN_GT9XX is not set
+ # CONFIG_TOUCHSCREEN_CT36X_TS is not set
+-- 
+1.7.9.5
+

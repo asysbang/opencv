@@ -1,0 +1,16 @@
+======>>>>>>编译<<<<<<======
+		
+		ln -sf /usr/bin/ld.gold prebuilts/gcc/linux-x86/host/x86_64-linux-glibc2.11-4.6/x86_64-linux/bin/ld
+		
+		
+		
+======>>>>>>刷机<<<<<<======	
+		
+		   sudo upgrade_tool di -b /path/to/boot.img
+		   sudo upgrade_tool di -k /path/to/kernel.img
+		   sudo upgrade_tool di -s /path/to/system.img
+		   sudo upgrade_tool di -r /path/to/recovery.img
+		   sudo upgrade_tool di -m /path/to/misc.img
+		   sudo upgrade_tool di resource /path/to/resource.img
+		   sudo upgrade_tool di -p paramater   #烧写 parameter
+		   sudo upgrade_tool ul bootloader.bin # 烧写 bootloader

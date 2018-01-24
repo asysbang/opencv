@@ -1,0 +1,33 @@
+======>>>>>>知识点<<<<<<======
+		
+		imread和cvLoadImage  是C++和C不同语言的相同功能的函数
+
+		图片的局部裁剪  
+				Rect rc(880, 267, 195, 50);
+				Mat gray = Mat(matSrc, rc);
+				
+		画矩形框
+				rectangle(matThreshold ,Rect(10,10,200,40),Scalar(90,233,45),1,1,0);
+		
+		轮廓层级关系
+				如果是一横排的话 contours[0]在最右面，所以可以理解为contours是倒序存储的
+				所以遍历的话用hierarchy[x][0] 找前一个轮廓
+				//hierarchy[3][3]表示轮廓3的父级轮廓    hierarchy[ hierarchy[3][3]][3]表示轮廓3父级轮廓的父级轮廓   
+				//hierarchy[3][0]、hierarchy[3][1]、hierarchy[3][2]、hierarchy[3][3]分别表示轮廓3的 前一个、后一个、子级、父级轮廓 
+				
+				
+		BGR2HSV数据格式转换
+				opencv中hsv的取值范围   H : 0~180    S : 0~255    v : 0~255
+				其他软件如GIMP中        H ：0～360    S ：0～100    v ： 0～100
+		
+======>>>>>>待解决<<<<<<======
+		
+		二值化的具体参数，怎么对应到rgb
+		灰度，8位，通道，等基础概念
+		sepFilter2D, filter2D, blur, boxFilter, bilateralFilter, medianBlur
+		blur, bilateralFilter, GaussianBlur, medianBlur, integral
+		是不是先做resize 这样识别的效果会好很多？？？
+		android  源代码下 opencv编译
+		
+		
+======>>>>>>rk3288<<<<<<======
